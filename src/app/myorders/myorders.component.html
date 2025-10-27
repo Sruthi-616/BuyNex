@@ -10,9 +10,10 @@
       <div class="card shadow-sm">
         <div class="card-body">
           <h5 class="card-title">{{ order.productName }}</h5>
-          <p class="card-text mb-1"><strong>Code:</strong> {{ order.productCode }}</p>
           <p class="card-text mb-1"><strong>Price:</strong> ₹{{ order.productPrice }}</p>
-          <p class="card-text"><small class="text-muted">Ordered on: {{ order.orderDate | date:'short' }}</small></p>
+          <p class="card-text"> <small class="text-muted">
+            Ordered on: {{ order.orderDate | date:'dd/MM/yyyy' }}
+          </small></p>
         </div>
       </div>
     </div>

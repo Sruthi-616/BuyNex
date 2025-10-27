@@ -7,12 +7,10 @@
           <p class="card-text mb-1"><strong>Code:</strong> {{ product.productCode }}</p>
           <p class="card-text mb-1"><strong>Price:</strong> ₹{{ product.productPrice }}</p>
           <p class="card-text">
-            <span  class="badge" [ngClass]="{
-              'bg-success': product.productStatus === 'Active',
-              'bg-danger': product.productStatus === 'Inactive'
-            }">
-              {{ product.productStatus }}
+            <span *ngIf="product.productStatus === 'Inactive'" class="badge bg-danger">
+               Not Available 
             </span>
+            <span  *ngIf="product.productStatus === 'Active'" class="mt-4">Available</span>            
           </p>
           <button class="btn btn-primary btn-sm me-2"
                   (click)="addToCart(product)"

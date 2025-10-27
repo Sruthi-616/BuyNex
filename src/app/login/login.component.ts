@@ -43,7 +43,8 @@ export class LoginComponent {
       username: ['', Validators.required],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
-      role: ['', Validators.required]
+      role: ['', Validators.required],
+      
     });
   
     this.forgotForm = this.fb.group({

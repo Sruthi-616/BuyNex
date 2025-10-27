@@ -41,6 +41,16 @@ export class Service1Service {
   getCartLength(): number {
     return this.cartSubject.getValue().length;
   }
-  
+  userCart:any;
+  //getSomeOrders(): any[] {
+    
+    //const username = localStorage.getItem('username'); // ✅ get from localStorage
+    //console.log(username)
+   // const userOrders = this.cart$.filter(cart => cart.userName === username);
+    //return userOrders;
+  //}
+  //get():number{
+    //return this.getSomeOrders().length;
+  //}
 }
 

@@ -77,38 +77,29 @@ export class CartComponent {
       orderDate: new Date(),
       
     };
-    Swal.fire({
-  title: 'Placing order...',
-  allowOutsideClick: false,
-  didOpen: () => Swal.showLoading()
-});
+    
 
 // Call service
 this.orderService.placeOrder(orderData).subscribe({
   next: (res) => {
     // Add to service array
     this.orderService.addOrder(orderData);
-
-    // Close the loading Swal
-    Swal.close();
-
-    // ✅ Toast notification
-    const Toast = Swal.mixin({
+    const Toast = Swal.mixin({ 
       toast: true,
-      position: 'top-end',
+      position: "top-end",
       showConfirmButton: false,
       timer: 3000,
       timerProgressBar: true,
       didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer);
-        toast.addEventListener('mouseleave', Swal.resumeTimer);
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
       }
     });
-
     Toast.fire({
-      icon: 'success',
-      title: 'Order placed successfully!'
+      icon: "success",
+      title: "Order Placed successfully"
     });
+    
   },
   error: (err) => {
     Swal.close();

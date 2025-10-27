@@ -22,7 +22,8 @@ export class HomeComponent  implements OnInit{
   orderLabels: string[] = [];
   orderData: number[] = [];
   t: any;
-
+ totalOrders:any;
+ adminOrderChart:any;
   constructor(private r: ListService, private o: Service2Service,private res:Service1Service) {}
 
   ngOnInit(): void {
@@ -54,76 +55,91 @@ export class HomeComponent  implements OnInit{
         this.orderData = [orderedProductsCount, notOrderedProductsCount];
       
         // ✅ Re-create the chart after data is ready
-        this.createOrderPieChart();
+        this.createadminOrderChart();
+
         this.totalCartItems=this.res.getCartLength();
-        this.createPieChart();
+        setTimeout(() => {
+          this.createActiveInactiveChart();
+          this.createadminOrderChart(); // fixed name
+        }, 500);
+    
       });
     });
   }
   orderPie:any;
-  createPieChart() {
-    const data = {
-      datasets: [{
-        data: [this.totalCartItems, 1], // 1 represents empty portion
-        backgroundColor: ['green', '#ffffff'], // green for orders, white for empty
-        borderWidth: 0
-      }]
-    };
 
-    const options = {
-      responsive: true,
-      cutout: '0%',
-      plugins: {
-        tooltip: {
-          enabled: false
-        }
-      }
-    };
+  loadOrders() {
+    const orders = this.o.getOrders();
+    this.totalOrders = orders.length;
 
-    if (this.pieChart) this.pieChart.destroy(); // destroy previous chart
-
-    this.pieChart = new Chart(this.orderPie.nativeElement, {
-      type: 'pie',
-      data,
-      options
+    // ✅ Count orders by product name
+    const productCounts: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const name = order.productName || 'Unknown';
+      productCounts[name] = (productCounts[name] || 0) + 1;
     });
-  }
-  createOrderPieChart(): void {
-    const canvas = document.getElementById('orderPieChart') as HTMLCanvasElement;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-  
-    // Destroy old chart if it exists
-    if (this.orderChart) {
-      this.orderChart.destroy();
-    }
-  
-    // Create new chart
-    this.orderChart = new Chart(ctx, {
-      type: 'pie',
-      data: {
-        labels: this.orderLabels,
-        datasets: [{
-          data: this.orderData,
-          backgroundColor: ['#28a745', '#dc3545'] // green = ordered, red = not ordered
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: 'top' } }
-      }
-    });
-  }
 
+    this.orderLabels = Object.keys(productCounts);
+    this.orderData = Object.values(productCounts);
+  } 
   ngAfterViewInit(): void {
     // Safety: if data is already available early, chart will render
     if (this.activeProducts + this.inactiveProducts > 0) {
       this.createActiveInactiveChart();
     }
-    this.createOrderPieChart();
-  }
+    this.createadminOrderChart();
 
+  }
+  createadminOrderChart() {
+    const canvas = document.getElementById('orderPieChart') as HTMLCanvasElement;
+    if (!canvas) {
+      console.warn("orderPieChart canvas not found");
+      return;
+    }
+  
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.warn("orderPieChart context not found");
+      return;
+    }
+  
+    // Load latest order data (if not already loaded)
+    this.loadOrders();
+  
+    // Wait a bit for async data (since getOrders() might fetch from service)
+    setTimeout(() => {
+      if (this.adminOrderChart) this.adminOrderChart.destroy();
+  
+      this.adminOrderChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.orderLabels.length ? this.orderLabels : ['No Orders'],
+          datasets: [{
+            data: this.orderData.length ? this.orderData : [1],
+            backgroundColor: [
+              '#dc3545','#28a745', 
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Orders per Product'
+            },
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }, 300);
+  }
+  
+   // ---- Pie Chart 3: Cart Items per Pro
+  
   createActiveInactiveChart(): void {
     const canvas = document.getElementById('activeInactiveChart') as HTMLCanvasElement;
     if (!canvas) return;

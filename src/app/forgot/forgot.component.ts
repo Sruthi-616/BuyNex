@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -16,7 +17,7 @@ export class ForgotComponent {
   showNew: boolean = false;
   showConfirm: boolean = false;
 
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder,private r:Router) {}
 
   ngOnInit() {
       this.users = JSON.parse(localStorage.getItem('users') || '[]');
@@ -51,28 +52,48 @@ export class ForgotComponent {
     const { oldPassword, newPassword } = this.changeForm.getRawValue(); // getRawValue to include disabled username
 
     if (oldPassword !== this.currentUser.password) {
-      this.showToast('error', 'Old password is incorrect');
+      const Toast = Swal.mixin({ 
+        toast: true,
+        position: "top-end",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.onmouseenter = Swal.stopTimer;
+          toast.onmouseleave = Swal.resumeTimer;
+        }
+      });
+      Toast.fire({
+        icon: "error",
+        title: "Password not Updated"
+      });
       return;
     }
 
     // Update password
     this.currentUser.password = newPassword;
     localStorage.setItem('users', JSON.stringify(this.users));
-    this.showToast('success', 'Password updated successfully');
     this.changeForm.reset({
       username: this.currentUser.username
     });
+    this.r.navigateByUrl('')
+  const Toast = Swal.mixin({ 
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
+  Toast.fire({
+    icon: "success",
+    title: "Password Updated Successfully"
+  });
   }
-
-  showToast(icon: 'success' | 'error', title: string) {
-    Swal.fire({
-      toast: true,
-      position: 'top-end',
-      icon,
-      title,
-      showConfirmButton: false,
-      timer: 3000,
-      timerProgressBar: true
-    });
+  log(){
+    this.r.navigateByUrl('/dash')
   }
 }

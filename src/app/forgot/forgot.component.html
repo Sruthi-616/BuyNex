@@ -7,7 +7,7 @@
   
           <!-- Username (readonly) -->
           <div class="mb-3">
-            <label>Username</label>
+            <label>Username<span class="text-danger">*</span></label>
             <input 
               type="text" 
               class="form-control" 
@@ -17,7 +17,7 @@
   
           <!-- Old Password -->
           <div class="mb-3 position-relative">
-            <label>Old Password</label>
+            <label>Old Password<span class="text-danger">*</span></label>
             <input 
               [type]="showOld ? 'text' : 'password'" 
               class="form-control" 
@@ -33,7 +33,7 @@
   
           <!-- New Password -->
           <div class="mb-3 position-relative">
-            <label>New Password</label>
+            <label>New Password<span class="text-danger">*</span></label>
             <input 
               [type]="showNew ? 'text' : 'password'" 
               class="form-control" 
@@ -50,7 +50,7 @@
   
           <!-- Confirm Password -->
           <div class="mb-3 position-relative">
-            <label>Confirm New Password</label>
+            <label>Confirm New Password<span class="text-danger">*</span></label>
             <input 
               [type]="showConfirm ? 'text' : 'password'" 
               class="form-control" 
@@ -64,7 +64,7 @@
             </div>
           </div>
   
-          <button class="btn btn-primary w-100" type="submit" 
+          <button class="btn btn-primary ms-4" type="submit" 
         [disabled]="
           !changeForm.get('oldPassword')?.value || 
           !changeForm.get('newPassword')?.value || 
@@ -72,13 +72,10 @@
         ">
         Change Password
           </button>
-
+          <button class="btn btn-secondary ms-5 mt-1" type="submit" (click)="log()">Cancel</button>
         </form>
   
         <!-- Link to login -->
-        <div class="text-center mt-3">
-          <a routerLink="">Back to Login</a>
-        </div>
   
       </div>
     </div>

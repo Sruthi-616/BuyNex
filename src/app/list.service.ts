@@ -5,7 +5,7 @@ import { BehaviorSubject, of } from 'rxjs';
   providedIn: 'root'
 })
 export class ListService {
-
+  private storageKey = 'products';
   constructor() { }
   productsArray = [
       {
@@ -48,6 +48,11 @@ export class ListService {
     getProducts(){
       return of([...this.productsArray]);
     }
+    private saveProductsToStorage(products: any[]): void {
+      localStorage.setItem(this.storageKey, JSON.stringify(products));
+      this.productsSubject.next(products);
+    }
+  
     delete(pid:any){
       const index=this.productsArray.findIndex((e)=>e.productCode==pid);
       if(index!=-1){
@@ -62,6 +67,7 @@ export class ListService {
     addProduct(product: any) {
       this.productsArray.push(product);
       this.productsSubject.next([...this.productsArray]); 
+      //this.saveProductsToStorage(product);
     }
   
     updateProduct(updated: any) {
@@ -70,6 +76,7 @@ export class ListService {
         this.productsArray[index] = { ...updated };
         this.productsSubject.next([...this.productsArray]); 
       }
+      //this.saveProductsToStorage(product);
     }
     getlen(){
       return of(this.productsArray.length)

@@ -103,13 +103,7 @@ export class ItemsComponent implements OnInit {
       orderDate: new Date(),
       
     };
-   // Swal.fire({
-  //title: 'Placing order...',
-  //allowOutsideClick: false,
-  //didOpen: () => Swal.showLoading()
-//});
-
-// Call service
+  
 this.orderService.placeOrder(orderData).subscribe({
   next: (res) => {
     // Add to service array
@@ -129,16 +123,6 @@ this.orderService.placeOrder(orderData).subscribe({
       icon: "success",
       title: "Order Placed successfully"
     });
-    // Close the loading Swal
-
-    // ✅ Toast notification
-    
-      //timerProgressBar: true,
-      //didOpen: (toast) => {
-        //toast.addEventListener('mouseenter', Swal.stopTimer);
-        //toast.addEventListener('mouseleave', Swal.resumeTimer);
-      //}
-    
   },
   error: (err) => {
     Swal.close();
@@ -149,9 +133,6 @@ this.orderService.placeOrder(orderData).subscribe({
     });
   }
 });
-
-
-  
         // Close modal
  const modalEl = document.getElementById('buyNowModal');
  const modalInstance = bootstrap.Modal.getInstance(modalEl);

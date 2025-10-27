@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ElementRef, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { Chart, ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import Config from 'chart.js/dist/core/core.config';
@@ -40,19 +40,29 @@ export class DashboardComponent {
 
   productPriceLabels: string[] = [];
   productPriceData: number[] = [];
-  orderLabels: string[]=[];
-  orderData: number[]=[]
-  cartLabels: string[] = [];
-  cartData: number[] =[];
   t:any;
   orderChart:any;
   p:any;
-  totalOrders:any;
-  totalCartItems:any;
   orders:any;
-  cartChart:any;
   chart:any;
   config:any;
+  PieChart:any;
+  
+  orderLabels: string[] = [];
+  orderData: number[] = [];
+
+  // ---- Cart Pie ----
+  cartChart: any;
+  cartLabels: string[] = [];
+  cartData: number[] = [];
+
+  // ---- User Order Summary Pie ----
+  userOrderSummaryChart: any;
+
+  totalOrders: number = 0;
+  totalCartItems: number = 0;
+  adminOrderChart:any;
+
   constructor(private router: Router,private r:ListService,private o:Service2Service,private res : Service1Service) {}
      ngOnInit() {
       this.username = localStorage.getItem('username');
@@ -101,78 +111,173 @@ export class DashboardComponent {
       this.t=this.o.getAll();
       this.totalOrders=this.o.get();
       this.totalCartItems=this.res.getCartLength();
-      this.updatePieChart();
-
-  }
-  ngAfterViewInit(): void {
-    // Create the pie chart after DOM is rendered
-    this.createOrderPieChart();
-    this.createPieChart();
+      this.loadOrders();
+      this.loadCart();
+      this.load();
+      this.createCartDistributionChart();
   }
 
-  createOrderPieChart(): void {
+  ngAfterViewInit() {
+      setTimeout(() => {
+        this.createActiveInactiveChart();
+        this.createAdminOrderChart();// ✅ Added here
+        this.createOrderPieChart();
+        this.createCartDistributionChart();
+      }, 500);
+  }
+  loadOrders() {
+    const orders = this.o.getSomeOrders();
+    this.totalOrders = orders.length;
+
+    // ✅ Count orders by product name
+    const productCounts: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const name = order.productName || 'Unknown';
+      productCounts[name] = (productCounts[name] || 0) + 1;
+    });
+
+    this.orderLabels = Object.keys(productCounts);
+    this.orderData = Object.values(productCounts);
+  }
+  load() {
+    const orders = this.o.getOrders();
+    this.totalOrders = orders.length;
+
+    // ✅ Count orders by product name
+    const productCounts: { [key: string]: number } = {};
+    orders.forEach(order => {
+      const name = order.productName || 'Unknown';
+      productCounts[name] = (productCounts[name] || 0) + 1;
+    });
+
+    this.orderLabels = Object.keys(productCounts);
+    this.orderData = Object.values(productCounts);
+  } 
+  loadCart() {
+    const cart = this.res.getCart();
+    this.totalCartItems = cart.length;
+
+    // ✅ Count cart items by product name
+    const cartCounts: { [key: string]: number } = {};
+    cart.forEach(item => {
+      const name = item.productName || 'Unknown';
+      cartCounts[name] = (cartCounts[name] || 0) + 1;
+    });
+
+    this.cartLabels = Object.keys(cartCounts);
+    this.cartData = Object.values(cartCounts);
+  }
+  createAdminOrderChart() {
     const canvas = document.getElementById('orderPieChart') as HTMLCanvasElement;
+    if (!canvas) {
+      console.warn("orderPieChart canvas not found");
+      return;
+    }
+  
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      console.warn("orderPieChart context not found");
+      return;
+    }
+  
+    // Load latest order data (if not already loaded)
+    this.load();
+  
+    // Wait a bit for async data (since getOrders() might fetch from service)
+    setTimeout(() => {
+      if (this.adminOrderChart) this.adminOrderChart.destroy();
+  
+      this.adminOrderChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: this.orderLabels.length ? this.orderLabels : ['No Orders'],
+          datasets: [{
+            data: this.orderData.length ? this.orderData : [1],
+            backgroundColor: [
+              '#dc3545','#28a745', 
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Orders per Product'
+            },
+            legend: {
+              position: 'bottom'
+            }
+          }
+        }
+      });
+    }, 300);
+  }
+  
+   // ---- Pie Chart 3: Cart Items per Product ----
+   createCartDistributionChart() {
+    const canvas = document.getElementById('cartChart') as HTMLCanvasElement;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-  
-    // Destroy old chart if it exists
-    if (this.orderChart) {
-      this.orderChart.destroy();
-    }
-  
-    // Create new chart
+
+    if (this.cartChart) this.cartChart.destroy();
+
+    this.cartChart = new Chart(ctx, {
+      type: 'pie',
+      data: {
+        labels: this.cartLabels,
+        datasets: [{
+          data: this.cartData,
+          backgroundColor: ['#17a2b8', '#ffc107', '#dc3545', '#28a745', '#6f42c1']
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          title: { display: true, text: 'Cart Items per Product' },
+          legend: { position: 'bottom' }
+        }
+      }
+    });
+   }
+  createOrderPieChart() {
+    const canvas = document.getElementById('orderChart') as HTMLCanvasElement;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    if (this.orderChart) this.orderChart.destroy();
+
     this.orderChart = new Chart(ctx, {
       type: 'pie',
       data: {
         labels: this.orderLabels,
         datasets: [{
           data: this.orderData,
-          backgroundColor: ['#28a745', '#dc3545'] // green = ordered, red = not ordered
+          backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#6f42c1']
         }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'top' } }
+        plugins: {
+          title: {
+            display: true,
+            text: 'Orders per Product'
+          },
+          legend: { position: 'bottom' }
+        }
       }
     });
   }
-  orderPie:any;
-  createPieChart() {
-    if (!this.orderPie) return;
-
-    const data = {
-      datasets: [{
-        data: [this.totalCartItems, 1], // green slice + white
-        backgroundColor: ['green', '#e0e0e0'],
-        borderWidth: 0
-      }]
-    };
-
-    const options = {
-      responsive: true,
-      plugins: { tooltip: { enabled: false } },
-      cutout: '0%' // full pie
-    };
-
-    if (this.pieChart) this.pieChart.destroy();
-
-    this.pieChart = new Chart(this.orderPie.nativeElement, {
-      type: 'pie',
-      data,
-      options
-    });
+  ngOnDestroy() {
+    
+    if (this.cartChart) this.cartChart.destroy();
+    if (this.activeInactiveChart) this.activeInactiveChart.destroy();
+    if (this.userOrderSummaryChart) this.userOrderSummaryChart.destroy();
   }
 
-  updatePieChart() {
-    if (!this.pieChart) {
-      this.createPieChart();
-    } else {
-      // Update chart with new totalCartItems
-      this.pieChart.data.datasets[0].data = [this.totalCartItems, 1];
-      this.pieChart.update();
-    }
-  }
   createActiveInactiveChart(): void {
     const canvas = document.getElementById('activeInactiveChart') as HTMLCanvasElement;
     if (!canvas) return;
@@ -191,11 +296,9 @@ export class DashboardComponent {
       
     });
 }
-    
-
-  toggleSidebar() {
-    this.isSidebarOpen = !this.isSidebarOpen;
-  }
+toggleSidebar() {
+  this.isSidebarOpen = !this.isSidebarOpen;
+}
 
   logout() {
     localStorage.removeItem('user');
