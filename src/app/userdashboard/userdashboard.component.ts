@@ -50,19 +50,20 @@ export class UserdashboardComponent {
   }
 
   loadCart() {
-    const cart = this.cartService.getCart();
-    this.totalCartItems = cart.length;
-
-    // ✅ Count cart items by product name
+    this.totalCartItems = this.cartService.getCartLength();
+  
+    const cart = this.cartService.getCart(); // still needed for chart
     const cartCounts: { [key: string]: number } = {};
+  
     cart.forEach(item => {
       const name = item.productName || 'Unknown';
       cartCounts[name] = (cartCounts[name] || 0) + 1;
     });
-
+  
     this.cartLabels = Object.keys(cartCounts);
     this.cartData = Object.values(cartCounts);
   }
+  
 
   createOrderPieChart() {
     const canvas = document.getElementById('orderChart') as HTMLCanvasElement;
